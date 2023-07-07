@@ -27,7 +27,7 @@ public class Item <T> {
 
     @Override
     public String toString() {
-        return "Item [value=" + value + ", quatity=" + quatity + "]";
+        return "[value=" + value + ", quatity=" + quatity + "]";
     } 
 
 }

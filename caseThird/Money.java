@@ -4,11 +4,10 @@ public class Money {
     private Integer amount;
     private Currency currency;
     
-    public enum Currency {                                           // <---------HW1. It can be created in a separate file,
-        EUR (978),                                   // but then in main() we should call the package first instead
-        USD (840),                                   // of the Money class every time we need to call Currency, so
-        MDL (498);                                   // at this level I think it's more intuitive to call in main()
-                                                                     // "Money.Currency.EUR" instead of "caseThird.Currency.EUR".
+    public enum Currency {                                           
+        EUR (978),
+        USD (840),
+        MDL (498);
         private final int CURRENCY_NUMBER;
 
         private Currency(final int CURRENCY_NUMBER) {
