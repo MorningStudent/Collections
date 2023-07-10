@@ -10,7 +10,7 @@ public abstract class AItemRepository {
         items = new ArrayList<>();
     }
 
-    public List<Item<Product>> getItems() {    // <----- added on this HWs
+    public List<Item<Product>> getItems() {
         return items;
     }
 
@@ -19,7 +19,7 @@ public abstract class AItemRepository {
         return "\n[products=" + items + "]";
     }
 
-    public void addItem(Item<Product> item) {
+    public void addItem(Item<Product> item) throws ItemStockQuantityLackException {
         items.add(item);
     }
     
@@ -34,6 +34,10 @@ public abstract class AItemRepository {
         return item;
     }
 
+    public Item<Product> getItemByProduct(Product product) {
+        return getItemById(product.getId());
+    }
+
     public void removeItemById(Integer id) {                                       
         for (int i = 0; i < items.size(); i++) {
             if(items.get(i).getValue().getId().intValue() == id.intValue()) {
@@ -43,7 +47,7 @@ public abstract class AItemRepository {
         }
     }
 
-    public void removeItem(Item<Product> item) {                       // <----------------HW5 1/2
+    public void removeItem(Item<Product> item) {
         for (int i = 0; i < items.size(); i++) {
             if(items.get(i).getValue().equals(item.getValue())) {
                 items.remove(items.get(i));
@@ -52,30 +56,32 @@ public abstract class AItemRepository {
         }
     }
 
-    public void increaseItemQuantity(Item<Product> item, Integer quantity) {                  // HW6
-        if(quantity > 0) {                                                                    // <-----------------+ Protection logic
-            for (int i = 0; i < items.size(); i++) {                                          //                   |
-                if(items.get(i).getValue().equals(item.getValue())) {                         //                   |
-                    items.get(i).setQuatity(items.get(i).getQuatity() + quantity);            //                   |
-                    break;                                                                    //                   |
-                }                                                                             //                   |
-            }                                                                                 //                   |
-        } else {                                                                              // <-----------------+
-            System.err.println("Quantity that increases must be >= 1 !!!");                 // <-----------------+
+    public void increaseItemQuantity(Item<Product> item, Integer quantity) throws ItemStockQuantityLackException {
+        if(quantity > 0) {
+            for (int i = 0; i < items.size(); i++) {
+                if(items.get(i).getValue().equals(item.getValue())) {
+                    items.get(i).setQuatity(items.get(i).getQuatity() + quantity);
+                    break;
+                }
+            }
+        } else {                                                                              
+            System.err.println("Quantity that increases must be >= 1 !!!");
         }
     }
 
-    public void decreaseItemQuantity(Item<Product> item, Integer quantity) {                  // HW 6
+    public void decreaseItemQuantity(Item<Product> item, Integer quantity) {
 
         for (int i = 0; i < items.size(); i++) {
             if(items.get(i).getValue().equals(item.getValue())) {
-                if(quantity.intValue() < items.get(i).getQuatity().intValue()) {               // <----------------+
-                    items.get(i).setQuatity(items.get(i).getQuatity() - quantity);             //                  |
-                    break;                                                                     //                  |
-                } else if(quantity.intValue() >= items.get(i).getQuatity().intValue()) {       // <----------------+ Protection logic
-                    removeItem(item);                                                          // <----------------+
-                } else {                                                                       // <----------------+
-                    System.err.println("Decrease Quantity ERROR !!!");                       // <----------------+
+                if(quantity.intValue() < items.get(i).getQuatity().intValue()) {
+                    items.get(i).setQuatity(items.get(i).getQuatity() - quantity);
+                    break;
+                } else if(quantity.intValue() >= items.get(i).getQuatity().intValue()) {
+                    removeItem(item);
+                    break;
+                } else {
+                    System.err.println("Decrease Quantity ERROR !!!");
+                    break;
                 }
             }
         }

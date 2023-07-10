@@ -3,9 +3,11 @@ package caseThird;
 public class Cart extends AItemRepository {
     private Client owner;
     private Money total;
+    private AItemRepository stock;
 
-    public Cart(Client owner) {
+    public Cart(Client owner, AItemRepository stock) {
         this.owner = owner;
+        this.stock = stock;
         this.total = new Money(0, Money.Currency.EUR);
     }
 
@@ -22,7 +24,15 @@ public class Cart extends AItemRepository {
         this.owner = owner;
     }
 
-    public void updateTotal() {                  // <--------- HW7*
+    private Item<Product> getStockItem(Item<Product> item) {
+        return stock.getItemById(item.getValue().getId());
+    }
+
+    private Integer getStockItemQuantity(Item<Product> item) {
+        return getStockItem(item).getQuatity();
+    }
+
+    public void updateTotal() {
         Integer updatedAmount = 0;
         for (int i = 0; i < this.getItems().size(); i++) {
             updatedAmount += this.getItems().get(i).getValue().getPrice().getAmount() * this.getItems().get(i).getQuatity();
@@ -31,38 +41,52 @@ public class Cart extends AItemRepository {
     }
 
     @Override
-    public void addItem(Item<Product> item) {
+    public void addItem(Item<Product> item) throws ItemStockQuantityLackException {
+        if (getStockItemQuantity(item) < item.getQuatity()) {
+            throw new ItemStockQuantityLackException("ERROR: The stock has less quantity than it's added in cart!");
+        }
         super.addItem(item);
-        // total.setAmount(total.getAmount() + item.getValue().getPrice().getAmount() * item.getQuatity());
-        updateTotal(); // <-----------optimization  HW7*
-    }
+        getStockItem(item).setQuatity(getStockItem(item).getQuatity() - item.getQuatity());
+        updateTotal();
+    }    
 
     @Override
     public void removeItemById(Integer id) {
+        Item<Product> item = getItemById(id);
+        getStockItem(item).setQuatity(getStockItem(item).getQuatity() + item.getQuatity());
         super.removeItemById(id);
-        // total.setAmount(total.getAmount() - getItemById(id).getValue().getPrice().getAmount() * getItemById(id).getQuatity());
-        updateTotal(); // <-----------optimization  HW7*
+        updateTotal();
     }
 
     @Override
-    public void removeItem(Item<Product> item) {                          //<--------------HW5 2/2
+    public void removeItem(Item<Product> item) {
+        getStockItem(item).setQuatity(getStockItem(item).getQuatity() + item.getQuatity());
         super.removeItem(item);
-        // total.setAmount(total.getAmount() - item.getValue().getPrice().getAmount() * item.getQuatity());
-        updateTotal(); // <-----------optimization  HW7*
+        updateTotal();
     }
 
     @Override
-    public void increaseItemQuantity(Item<Product> item, Integer quantity) {
+    public void increaseItemQuantity(Item<Product> item, Integer quantity) throws ItemStockQuantityLackException {
+        if (getStockItemQuantity(item) < quantity) {
+            throw new ItemStockQuantityLackException("ERROR: The stock has less quantity than it's intended to be increased in the cart!");
+        }
         super.increaseItemQuantity(item, quantity);
-        // total.setAmount(total.getAmount() + item.getValue().getPrice().getAmount() * quantity);
-        updateTotal(); // <-----------optimization  HW7*
+        getStockItem(item).setQuatity(getStockItem(item).getQuatity() - quantity);
+        updateTotal();
     }
 
     @Override
     public void decreaseItemQuantity(Item<Product> item, Integer quantity) {
+        getStockItem(item).setQuatity(getStockItem(item).getQuatity() + quantity);
         super.decreaseItemQuantity(item, quantity);
-        // total.setAmount(total.getAmount() - item.getValue().getPrice().getAmount() * quantity);
-        updateTotal(); // <-----------optimization  HW7*
+        updateTotal();
     }
 
 }
+
+class ItemStockQuantityLackException extends Exception {
+    public ItemStockQuantityLackException (String message) {
+        super(message);
+    }
+}
+
